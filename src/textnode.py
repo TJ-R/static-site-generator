@@ -1,3 +1,6 @@
+from htmlnode import LeafNode
+
+
 class TextNode:
 
     def __init__(self, text, text_type, url=None):
@@ -16,3 +19,5 @@ class TextNode:
 
     def __repr__(self):
         print(f'TextNode({self.text}, {self.text_type}, {self.url})')
+
+
