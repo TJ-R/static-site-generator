@@ -19,5 +19,3 @@ class TextNode:
 
     def __repr__(self):
         print(f'TextNode({self.text}, {self.text_type}, {self.url})')
-
-
