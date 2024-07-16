@@ -1,7 +1,7 @@
 import unittest
 
 from textnode import TextNode
-from helper import split_nodes_delimiter
+from helper import split_nodes_delimiter, extract_markdown_images, extract_markdown_links
 
 
 class TestHelper(unittest.TestCase):
@@ -53,6 +53,28 @@ class TestHelper(unittest.TestCase):
         new_nodes = split_nodes_delimiter([node], "**", "bold")
         self.assertEqual(new_nodes[0].text, "This is a **text** node")
         self.assertEqual(new_nodes[0].text_type, "bold")
+
+    def test_extract_markdown_images(self):
+        text = "This is text with a ![rick roll](https://i.imgur.com/aKa0qIh.gif) and ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)"
+        expected = [("rick roll", "https://i.imgur.com/aKa0qIh.gif"), ("obi wan", "https://i.imgur.com/fJRm4Vk.jpeg")]
+
+        results = extract_markdown_images(text)
+
+        self.assertEqual(len(expected), len(results))
+
+        for i in range(len(expected)):
+            self.assertTupleEqual(results[i], expected[i])
+
+    def test_extract_markdown_links(self):
+        text = "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)"
+        expected = [("to boot dev", "https://www.boot.dev"), ("to youtube", "https://www.youtube.com/@bootdotdev")]
+
+        results = extract_markdown_links(text)
+
+        self.assertEqual(len(expected), len(results))
+
+        for i in range(len(expected)):
+            self.assertTupleEqual(results[i], expected[i])
 
 
 if __name__ == "__main__":
