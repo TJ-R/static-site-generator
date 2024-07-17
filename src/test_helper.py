@@ -1,7 +1,7 @@
 import unittest
 
 from textnode import TextNode
-from helper import split_nodes_delimiter, extract_markdown_images, extract_markdown_links
+from helper import split_nodes_delimiter, extract_markdown_images, extract_markdown_links, split_nodes_image, split_nodes_link, text_to_textnodes
 
 
 class TestHelper(unittest.TestCase):
@@ -27,6 +27,21 @@ class TestHelper(unittest.TestCase):
         new_nodes = split_nodes_delimiter([node], "**", "bold")
         self.assertEqual(new_nodes[0].text, "Test")
         self.assertEqual(new_nodes[0].text_type, "bold")
+
+    def test_split_node_double_bold(self):
+        node = TextNode("This is **bold** and make that **double**", "text")
+        new_nodes = split_nodes_delimiter([node], "**", "bold")
+        self.assertEqual(new_nodes[0].text, "This is ")
+        self.assertEqual(new_nodes[0].text_type, "text")
+
+        self.assertEqual(new_nodes[1].text, "bold")
+        self.assertEqual(new_nodes[1].text_type, "bold")
+
+        self.assertEqual(new_nodes[2].text, " and make that ")
+        self.assertEqual(new_nodes[2].text_type, "text")
+
+        self.assertEqual(new_nodes[3].text, "double")
+        self.assertEqual(new_nodes[3].text_type, "bold")
 
     def test_split_multiple_nodes(self):
         node = TextNode("This is a *text* node", "text")
@@ -75,6 +90,67 @@ class TestHelper(unittest.TestCase):
 
         for i in range(len(expected)):
             self.assertTupleEqual(results[i], expected[i])
+
+    def test_split_image(self):
+        old_nodes = [TextNode("This is text with a ![rick roll](https://i.imgur.com/aKa0qIh.gif) and ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg). This is extra.", "Text")]
+        expected = [TextNode("This is text with a ", "text"), TextNode("rick roll", "image", "https://i.imgur.com/aKa0qIh.gif"),
+                    TextNode(" and ", "text"), TextNode("obi wan", "image", "https://i.imgur.com/fJRm4Vk.jpeg"),
+                    TextNode(". This is extra.", "text")]
+
+        results = split_nodes_image(old_nodes)
+
+        for i in range(len(expected)):
+            self.assertEqual(results[i].text, expected[i].text)
+            self.assertEqual(results[i].text_type, expected[i].text_type)
+            self.assertEqual(results[i].url, expected[i].url)
+
+    def test_split_link(self):
+        old_nodes = [TextNode("This is text with a [rick roll](https://i.imgur.com/aKa0qIh.gif) and [obi wan](https://i.imgur.com/fJRm4Vk.jpeg). This is extra.", "Text")]
+        expected = [TextNode("This is text with a ", "text"), TextNode("rick roll", "link", "https://i.imgur.com/aKa0qIh.gif"),
+                    TextNode(" and ", "text"), TextNode("obi wan", "link", "https://i.imgur.com/fJRm4Vk.jpeg"),
+                    TextNode(". This is extra.", "text")]
+
+        results = split_nodes_link(old_nodes)
+
+        for i in range(len(expected)):
+            self.assertEqual(results[i].text, expected[i].text)
+            self.assertEqual(results[i].text_type, expected[i].text_type)
+            self.assertEqual(results[i].url, expected[i].url)
+
+    def test_split_no_image_and_link(self):
+        old_nodes = [TextNode("This has no img", "text")]
+        expected = [TextNode("This has no img", "text")]
+
+        results = split_nodes_image(old_nodes)
+
+        for i in range(len(expected)):
+            self.assertEqual(results[i].text, expected[i].text)
+            self.assertEqual(results[i].text_type, expected[i].text_type)
+            self.assertEqual(results[i].url, expected[i].url)
+
+        results = split_nodes_link(old_nodes)
+
+        for i in range(len(expected)):
+            self.assertEqual(results[i].text, expected[i].text)
+            self.assertEqual(results[i].text_type, expected[i].text_type)
+            self.assertEqual(results[i].url, expected[i].url)
+
+    def test_text_to_textnodes(self):
+        text = "This is **text** with an *italic* word and a `code block` and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)"
+        results = text_to_textnodes(text)
+
+        self.assertListEqual([
+            TextNode("This is ", "text"),
+            TextNode("text", "bold"),
+            TextNode(" with an ", "text"),
+            TextNode("italic", "italic"),
+            TextNode(" word and a ", "text"),
+            TextNode("code block", "code"),
+            TextNode(" and an ", "text"),
+            TextNode("obi wan image", "image", "https://i.imgur.com/fJRm4Vk.jpeg"),
+            TextNode(" and a ", "text"),
+            TextNode("link", "link", "https://boot.dev"),], results
+        )
 
 
 if __name__ == "__main__":
