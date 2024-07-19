@@ -1,4 +1,7 @@
 import re
+from htmlnode import HTMLNode
+from conversions import text_node_to_leaf_node
+from inline_markdown import text_to_textnodes
 
 
 def markdown_to_blocks(markdown):
@@ -44,3 +47,104 @@ def is_unordered_list(block):
 
 def is_ordered_list(block):
     return all(re.search(r"^\d+.\s", line) for line in block.split("\n"))
+
+
+def markdown_to_html(markdown):
+    blocks = markdown_to_blocks(markdown)
+    root = HTMLNode("div")
+
+    for block in blocks:
+        block_type = block_to_block_type(block)
+        new_html_node = None
+
+        if block_type == "heading":
+            header_level, header_text = block.split(' ', 1)
+            new_html_node = createHeaderNode(header_level.count("#"), header_text)
+        elif block_type == "code":
+            new_html_node = createCodeNode(block)
+        elif block_type == "quote":
+            new_html_node = createQuoteNode(block)
+        elif block_type == "unordered_list":
+            new_html_node = createUnorderedListNode(block)
+        elif block_type == "ordered_list":
+            new_html_node = createOrderedListNode(block)
+        else:
+            new_html_node = createParagraphNode(block)
+
+        root.children.append(new_html_node)
+
+    return root
+
+
+def createHeaderNode(level, text):
+    header_node = HTMLNode(f"h{level}")
+    child_nodes = text_to_children(text)
+    header_node.children.extend(child_nodes)
+    return header_node
+
+
+def createCodeNode(block):
+    pre_node = HTMLNode("pre")
+    code_node = HTMLNode("code")
+
+    text = block.strip[3:-3].strip()
+    child_nodes = text_to_children(text)
+
+    code_node.extend(child_nodes)
+    pre_node.children.append(code_node)
+
+    return pre_node
+
+
+def createQuoteNode(block):
+    block_quote_node = HTMLNode("blockquote")
+
+    for line in block.split("\n"):
+        paragraph_node = HTMLNode("p")
+        text = line.split(' ', 1)
+        children = text_to_children(text)
+        paragraph_node.children.extend(children)
+        block_quote_node.children.append(paragraph_node)
+
+    return block_quote_node
+
+
+def createUnorderedListNode(block):
+    ul_node = HTMLNode("ul")
+
+    for line in block.split("\n"):
+        li_node = HTMLNode("li")
+        text = line.split(' ', 1)
+        children = text_to_children(text)
+        li_node.children.extend(children)
+        ul_node.append(li_node)
+
+    return ul_node
+
+
+def createOrderedListNode(block):
+    ol_node = HTMLNode("ol")
+
+    for line in block.split("\n"):
+        li_node = HTMLNode("li")
+        text = line.split(' ', 1)
+        children = text_to_children(text)
+        li_node.children.extend(children)
+        ol_node.append(li_node)
+
+    return ol_node
+
+
+def createParagraphNode(block):
+    paragraphNode = HTMLNode("p")
+    children = text_to_children(block)
+    paragraphNode.children.extend(children)
+    return paragraphNode
+
+
+def text_to_children(text):
+    text_nodes = text_to_textnodes(text)
+    children = []
+    for text_node in text_nodes:
+        children.append(text_node_to_leaf_node(text_node))
+    return children
