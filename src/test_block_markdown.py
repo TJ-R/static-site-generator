@@ -1,8 +1,9 @@
 import unittest
-from block_markdown import markdown_to_blocks, block_to_block_type
+from block_markdown import markdown_to_blocks, block_to_block_type, markdown_to_html
+from htmlnode import HTMLNode, LeafNode
 
 
-class TestTextNode(unittest.TestCase):
+class TestBlockMarkdown(unittest.TestCase):
     def test_markdown_to_block(self):
         markdown = """
 # This is a heading
@@ -97,6 +98,58 @@ It has some **bold** and *italic* words inside of it.
         result = block_to_block_type(block)
 
         self.assertEqual(expected, result)
+
+    def test_paragraph_to_html(self):
+        markdown = "this is a **paragraph**"
+
+        result = markdown_to_html(markdown)
+
+        self.assertEqual(result.to_html(), "<div><p>this is a <b>paragraph</b></p></div>")
+
+    def test_code_to_html(self):
+        markdown = "```This is the code in a code block```"
+        result = markdown_to_html(markdown)
+
+        self.assertEqual(result.to_html(), "<div><pre><code>This is the code in a code block</code></pre></div>")
+
+    def test_heading_to_html(self):
+        markdown = """
+# this is an h1
+
+## this is an h2
+"""
+        result = markdown_to_html(markdown)
+
+        self.assertEqual(result.to_html(), "<div><h1>this is an h1</h1><h2>this is an h2</h2></div>")
+
+    def test_unordered_list_to_html(self):
+        markdown = """
+- This is a unordered list
+- with multiple items
+"""
+
+        result = markdown_to_html(markdown)
+
+        self.assertEqual(result.to_html(), "<div><ul><li>This is a unordered list</li><li>with multiple items</li></ul></div>")
+
+    def test_ordered_list_to_html(self):
+        markdown = """
+1. This is a ordered list
+2. with multiple items
+"""
+
+        result = markdown_to_html(markdown)
+
+        self.assertEqual(result.to_html(), "<div><ol><li>This is a ordered list</li><li>with multiple items</li></ol></div>")
+
+    def test_block_quote_to_html(self):
+        markdown = """
+> This is a block quote
+> with multiple lines
+"""
+
+        result = markdown_to_html(markdown)
+        self.assertEqual(result.to_html(), "<div><blockquote>This is a block quote with multiple lines</blockquote></div>")
 
 
 if __name__ == "__main__":
