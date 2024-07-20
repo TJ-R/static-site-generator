@@ -5,7 +5,7 @@ from block_markdown import extract_title, markdown_to_html
 
 def main():
     copy_src_to_dst("./static", "./public")
-    generate_page("content/index.md", "template.html", "public/index.html")
+    generate_pages_recursive("content", "template.html", "public")
 
 
 def copy_src_to_dst(src_path, dst_path):
@@ -37,7 +37,6 @@ def copy_src_to_dst(src_path, dst_path):
 def generate_page(src_path, template_path, dst_path):
     print(f"Generating page from {src_path} to {dst_path} using {template_path}")
     src_md = ""
-    template_md = ""
     with open(src_path, 'r') as f:
         src_md = f.read()
         f.close()
@@ -58,6 +57,20 @@ def generate_page(src_path, template_path, dst_path):
     with open(dst_path, 'w') as f:
         f.write(final_html)
         f.close()
+
+
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+    pages_to_generate = os.listdir(dir_path_content)
+
+    for page in pages_to_generate:
+        if os.path.isfile(os.path.join(dir_path_content, page)):
+            src_path = os.path.join(dir_path_content, page)
+            dst_path = os.path.join(dest_dir_path, page.replace('.md', '.html'))
+            generate_page(src_path, template_path, dst_path)
+        else:
+            new_dir_path_content = os.path.join(dir_path_content, page)
+            new_dest_dir_path = os.path.join(dest_dir_path, page)
+            generate_pages_recursive(new_dir_path_content, template_path, new_dest_dir_path)
 
 
 main()
