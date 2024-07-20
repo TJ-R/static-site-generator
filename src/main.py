@@ -1,9 +1,11 @@
 import os
 import shutil
+from block_markdown import extract_title, markdown_to_html
 
 
 def main():
     copy_src_to_dst("./static", "./public")
+    generate_page("content/index.md", "template.html", "public/index.html")
 
 
 def copy_src_to_dst(src_path, dst_path):
@@ -30,6 +32,33 @@ def copy_src_to_dst(src_path, dst_path):
         raise OSError("Source path does not exist")
 
     print(f"File copy from {src_path} to {dst_path} completed.")
+
+
+def generate_page(src_path, template_path, dst_path):
+    print(f"Generating page from {src_path} to {dst_path} using {template_path}")
+    src_md = ""
+    template_md = ""
+    with open(src_path, 'r') as f:
+        src_md = f.read()
+        f.close()
+
+    with open(template_path, 'r') as f:
+        template_md = f.read()
+        f.close()
+
+    title = extract_title(src_md)
+    src_html = markdown_to_html(src_md)
+    template_html = markdown_to_html(template_md)
+
+    template_html.to_html().replace("{{ Title }}", title)
+    template_html.to_html().replace("{{ Content }}", src_html.to_html())
+
+    directory = os.path.dirname(dst_path)
+    os.makedirs(directory, exist_ok=True)
+
+    with open(template_path, 'w') as f:
+        f.write(template_html.to_html())
+        f.close()
 
 
 main()
