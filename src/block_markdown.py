@@ -1,5 +1,5 @@
 import re
-from htmlnode import HTMLNode, ParentNode
+from htmlnode import ParentNode
 from conversions import text_node_to_leaf_node
 from inline_markdown import text_to_textnodes
 
@@ -151,3 +151,14 @@ def text_to_children(text):
     for text_node in text_nodes:
         children.append(text_node_to_leaf_node(text_node))
     return children
+
+
+def extract_title(markdown):
+    blocks = markdown_to_blocks(markdown)
+    for block in blocks:
+        if block_to_block_type(block) == "heading":
+            header_level, header_text = block.split(' ', 1)
+            if header_level.count("#") == 1:
+                return header_text.strip()
+
+    raise ValueError("Could not find title in markdown")

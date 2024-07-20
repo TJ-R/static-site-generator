@@ -1,6 +1,5 @@
 import unittest
-from block_markdown import markdown_to_blocks, block_to_block_type, markdown_to_html
-from htmlnode import HTMLNode, LeafNode
+from block_markdown import markdown_to_blocks, block_to_block_type, markdown_to_html, extract_title
 
 
 class TestBlockMarkdown(unittest.TestCase):
@@ -150,6 +149,11 @@ It has some **bold** and *italic* words inside of it.
 
         result = markdown_to_html(markdown)
         self.assertEqual(result.to_html(), "<div><blockquote>This is a block quote with multiple lines</blockquote></div>")
+
+    def test_extract_title(self):
+        markdown = "# Hello"
+        result = extract_title(markdown)
+        self.assertEqual(result, "Hello")
 
 
 if __name__ == "__main__":
