@@ -43,21 +43,20 @@ def generate_page(src_path, template_path, dst_path):
         f.close()
 
     with open(template_path, 'r') as f:
-        template_md = f.read()
+        template_html = f.read()
         f.close()
 
     title = extract_title(src_md)
-    src_html = markdown_to_html(src_md)
-    template_html = markdown_to_html(template_md)
+    src_html = markdown_to_html(src_md).to_html()
 
-    template_html.to_html().replace("{{ Title }}", title)
-    template_html.to_html().replace("{{ Content }}", src_html.to_html())
+    final_html = template_html.replace("{{ Title }}", title)
+    final_html = template_html.replace("{{ Content }}", src_html)
 
     directory = os.path.dirname(dst_path)
     os.makedirs(directory, exist_ok=True)
 
-    with open(template_path, 'w') as f:
-        f.write(template_html.to_html())
+    with open(dst_path, 'w') as f:
+        f.write(final_html)
         f.close()
 
 
